@@ -60,57 +60,57 @@ class _PlaceholderContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+    return const SingleChildScrollView(
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Primary: 整体条件状态
-          const Center(
+          Center(
             child: Text('条件满足', style: AppTextStyles.titleLarge),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
 
           // 分隔线
-          const Divider(height: 1),
-          const SizedBox(height: 24),
+          Divider(height: 1),
+          SizedBox(height: 24),
 
           // Secondary: 通过的规则
-          const Text('通过的规则', style: AppTextStyles.titleSmall),
-          const SizedBox(height: 8),
-          const _RuleItem(text: 'MA5 上穿 MA10'),
-          const SizedBox(height: 4),
-          const _RuleItem(text: 'MACD 金叉'),
-          const SizedBox(height: 16),
+          Text('通过的规则', style: AppTextStyles.titleSmall),
+          SizedBox(height: 8),
+          _RuleItem(text: 'MA5 上穿 MA10'),
+          SizedBox(height: 4),
+          _RuleItem(text: 'MACD 金叉'),
+          SizedBox(height: 16),
 
           // Secondary: 未通过的规则
-          const Text('未通过的规则', style: AppTextStyles.titleSmall),
-          const SizedBox(height: 8),
-          const _RuleItem(text: 'RSI 未低于阈值', isPassed: false),
-          const SizedBox(height: 24),
+          Text('未通过的规则', style: AppTextStyles.titleSmall),
+          SizedBox(height: 8),
+          _RuleItem(text: 'RSI 未低于阈值', isPassed: false),
+          SizedBox(height: 24),
 
           // 分隔线
-          const Divider(height: 1),
-          const SizedBox(height: 16),
+          Divider(height: 1),
+          SizedBox(height: 16),
 
           // Tertiary: 说明
-          const Text('说明', style: AppTextStyles.titleSmall),
-          const SizedBox(height: 8),
+          Text('说明', style: AppTextStyles.titleSmall),
+          SizedBox(height: 8),
           Text(
             '趋势与动量规则满足，但风险过滤未完全通过',
             style: AppTextStyles.bodySecondary,
           ),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
 
           // 底部信息
-          const Divider(height: 1),
-          const SizedBox(height: 12),
+          Divider(height: 1),
+          SizedBox(height: 12),
           Text(
             '数据时间：2026-02-14 15:02',
             style: AppTextStyles.caption,
           ),
-          const SizedBox(height: 8),
-          const DisclaimerFooter(),
+          SizedBox(height: 8),
+          DisclaimerFooter(),
         ],
       ),
     );

@@ -5,7 +5,7 @@ class AppTheme {
   static ThemeData light() {
     return ThemeData(
       useMaterial3: true,
-      colorScheme: ColorScheme.light(
+      colorScheme: const ColorScheme.light(
         primary: AppColors.textPrimary,
         surface: AppColors.background,
         error: AppColors.error,
