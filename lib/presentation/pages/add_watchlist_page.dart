@@ -58,8 +58,7 @@ class _AddWatchlistPageState extends ConsumerState<AddWatchlistPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 股票代码输入
-              const Text('股票代码', style: AppTextStyles.titleSmall),
+              Text('股票代码', style: AppTextStyles.titleSmall),
               const SizedBox(height: 8),
               TextFormField(
                 controller: _symbolController,
@@ -80,8 +79,7 @@ class _AddWatchlistPageState extends ConsumerState<AddWatchlistPage> {
               ),
               const SizedBox(height: 24),
 
-              // 监听规则选择
-              const Text('监听规则', style: AppTextStyles.titleSmall),
+              Text('监听规则', style: AppTextStyles.titleSmall),
               const SizedBox(height: 8),
               ..._ruleOptions.map((rule) => RadioListTile<String>(
                     title: Text(rule['name']!),

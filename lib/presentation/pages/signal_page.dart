@@ -27,8 +27,8 @@ class _SignalPageState extends ConsumerState<SignalPage> {
       appBar: AppBar(title: const Text('信号历史')),
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(12),
+          Padding(
+            padding: const EdgeInsets.all(12),
             child: Text(AppConstants.disclaimer, style: AppTextStyles.caption),
           ),
           Padding(

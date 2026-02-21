@@ -9,13 +9,13 @@ class DisclaimerFooter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Divider(height: 1),
-          SizedBox(height: 12),
+          const Divider(height: 1),
+          const SizedBox(height: 12),
           Text(
             AppConstants.disclaimer,
             style: AppTextStyles.captionSmall,

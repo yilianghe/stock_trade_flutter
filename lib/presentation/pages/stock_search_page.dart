@@ -27,8 +27,8 @@ class _StockSearchPageState extends ConsumerState<StockSearchPage> {
       appBar: AppBar(title: const Text('股票搜索')),
       body: Column(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(12),
+          Padding(
+            padding: const EdgeInsets.all(12),
             child: Text(AppConstants.disclaimer, style: AppTextStyles.caption),
           ),
           Padding(
