@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import '../../domain/entities/signal_list_entity.dart';
 import '../../shared/design_system/app_colors.dart';
 import '../../shared/design_system/app_text_styles.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/app_badge.dart';
 import '../../shared/widgets/circle_icon_button.dart';
-import 'signals_page.dart';
 
 /// Signal Detail 信号详情页面
 /// 对应设计稿的 SignalDetailView，展示：
@@ -20,7 +20,7 @@ class SignalDetailPage extends StatelessWidget {
     required this.signal,
   });
 
-  final SignalItemData signal;
+  final SignalListItemEntity signal;
 
   @override
   Widget build(BuildContext context) {
@@ -29,9 +29,7 @@ class SignalDetailPage extends StatelessWidget {
       body: SafeArea(
         child: Column(
           children: [
-            // 顶部导航栏
             _buildNavBar(context),
-            // 滚动内容区
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
@@ -91,7 +89,6 @@ class SignalDetailPage extends StatelessWidget {
           ),
           Text(signal.name, style: AppTextStyles.bodySecondary),
           const SizedBox(height: 24),
-          // 价格和涨跌幅
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -145,7 +142,7 @@ class SignalDetailPage extends StatelessWidget {
 
   /// 30D 趋势图
   Widget _buildTrendChart() {
-    // TODO: 替换为真实 API 数据
+    // TODO: 后续接入 GET /signals/{id} 获取 trend_30d 数据
     final trendData = [
       const FlSpot(1, 1680),
       const FlSpot(5, 1695),
@@ -253,7 +250,7 @@ class SignalDetailPage extends StatelessWidget {
 class _RuleCard extends StatelessWidget {
   const _RuleCard({required this.rule});
 
-  final RuleData rule;
+  final SignalRuleEntity rule;
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +264,6 @@ class _RuleCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Pass/Fail 图标
           Padding(
             padding: const EdgeInsets.only(top: 2),
             child: Icon(
@@ -279,12 +275,10 @@ class _RuleCard extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // 规则详情
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 规则名 + Pass/Fail 标签
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -312,7 +306,6 @@ class _RuleCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(rule.description, style: AppTextStyles.stockName),
                 const SizedBox(height: 12),
-                // Value / Target 数值框
                 Row(
                   children: [
                     Expanded(

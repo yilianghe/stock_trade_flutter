@@ -1,5 +1,6 @@
 import '../../domain/entities/signal_batch_item_entity.dart';
 import '../../domain/entities/signal_history_item_entity.dart';
+import '../../domain/entities/signal_list_entity.dart';
 import '../../domain/entities/signal_result_entity.dart';
 import '../../domain/repositories/signal_repository.dart';
 import '../datasources/remote/api_client.dart';
@@ -90,5 +91,43 @@ class SignalRepositoryImpl implements SignalRepository {
           ),
         )
         .toList();
+  }
+
+  @override
+  Future<SignalListEntity> getSignals({
+    String? keyword,
+    String? status,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final result = await apiClient.getSignals(
+      keyword: keyword,
+      status: status,
+      limit: limit,
+      offset: offset,
+    );
+    return SignalListEntity(
+      total: result.total,
+      items: result.items
+          .map((item) => SignalListItemEntity(
+                id: item.id,
+                symbol: item.symbol,
+                name: item.name,
+                price: item.price,
+                change: item.change,
+                timestamp: item.timestamp,
+                status: item.status,
+                rules: item.rules
+                    .map((r) => SignalRuleEntity(
+                          name: r.name,
+                          description: r.description,
+                          satisfied: r.satisfied,
+                          value: r.value,
+                          threshold: r.threshold,
+                        ))
+                    .toList(),
+              ))
+          .toList(),
+    );
   }
 }

@@ -1,38 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/strategy_entity.dart';
 import '../../shared/design_system/app_colors.dart';
 import '../../shared/design_system/app_text_styles.dart';
 import '../../shared/widgets/app_card.dart';
 import '../../shared/widgets/circle_icon_button.dart';
+import '../state/providers.dart';
 
 /// Strategies 策略管理页面
 /// 对应设计稿的 StrategiesView，展示：
 /// 1. 标题 + 添加按钮
-/// 2. 策略卡片列表（名称、描述、规则标签、状态、最后运行时间）
-class StrategiesPage extends StatelessWidget {
+/// 2. 策略卡片列表（名称、描述、规则标签、状态、最后运行时间）— 来自 GET /strategies
+class StrategiesPage extends ConsumerWidget {
   const StrategiesPage({super.key});
 
-  // TODO: 替换为真实 API 数据
-  static final List<_StrategyData> _mockStrategies = [
-    _StrategyData(
-      id: 'strat-1',
-      name: 'MA Golden Cross (EOD)',
-      description: 'Daily MA5 crosses above MA20 with volume confirmation.',
-      rules: ['MA5 > MA20', 'Volume > 1.5x Avg'],
-      lastRun: '2024-05-20 15:30',
-      active: true,
-    ),
-    _StrategyData(
-      id: 'strat-2',
-      name: 'RSI Oversold Recovery',
-      description: 'RSI(14) below 30 and starting to turn up.',
-      rules: ['RSI < 30', 'Price > Prev Close'],
-      lastRun: '2024-05-20 15:30',
-      active: false,
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final strategiesAsync = ref.watch(strategyListProvider);
+
     return SafeArea(
       bottom: false,
       child: Column(
@@ -60,13 +45,41 @@ class StrategiesPage extends StatelessWidget {
           const SizedBox(height: 20),
           // 策略列表
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
-              itemCount: _mockStrategies.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: _StrategyCard(strategy: _mockStrategies[index]),
+            child: strategiesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('加载失败', style: AppTextStyles.bodySecondary),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => ref.invalidate(strategyListProvider),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              ),
+              data: (strategies) {
+                if (strategies.isEmpty) {
+                  return Center(
+                    child: Text('暂无策略', style: AppTextStyles.bodySecondary),
+                  );
+                }
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(strategyListProvider);
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+                    itemCount: strategies.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 16),
+                        child: _StrategyCard(strategy: strategies[index]),
+                      );
+                    },
+                  ),
                 );
               },
             ),
@@ -81,7 +94,7 @@ class StrategiesPage extends StatelessWidget {
 class _StrategyCard extends StatelessWidget {
   const _StrategyCard({required this.strategy});
 
-  final _StrategyData strategy;
+  final StrategyEntity strategy;
 
   @override
   Widget build(BuildContext context) {
@@ -121,10 +134,8 @@ class _StrategyCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // 策略名称
           Text(strategy.name, style: AppTextStyles.titleMedium),
           const SizedBox(height: 4),
-          // 策略描述
           Text(
             strategy.description,
             style: AppTextStyles.bodySecondary,
@@ -265,23 +276,4 @@ class _PulsingDotState extends State<_PulsingDot>
       },
     );
   }
-}
-
-/// 策略数据模型
-class _StrategyData {
-  final String id;
-  final String name;
-  final String description;
-  final List<String> rules;
-  final String lastRun;
-  final bool active;
-
-  _StrategyData({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.rules,
-    required this.lastRun,
-    required this.active,
-  });
 }

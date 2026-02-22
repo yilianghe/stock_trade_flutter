@@ -1,103 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../domain/entities/signal_list_entity.dart';
 import '../../shared/design_system/app_colors.dart';
 import '../../shared/design_system/app_text_styles.dart';
 import '../../shared/widgets/app_badge.dart';
 import '../../shared/widgets/circle_icon_button.dart';
+import '../state/providers.dart';
 import 'signal_detail_page.dart';
 
 /// Signals 信号列表页面
 /// 对应设计稿的 SignalsView，展示：
 /// 1. 标题
 /// 2. 搜索栏 + 筛选按钮
-/// 3. 信号卡片列表（可点击进入详情）
-class SignalsPage extends StatefulWidget {
+/// 3. 信号卡片列表（可点击进入详情）— 数据来自 GET /signals
+class SignalsPage extends ConsumerStatefulWidget {
   const SignalsPage({super.key});
 
   @override
-  State<SignalsPage> createState() => _SignalsPageState();
+  ConsumerState<SignalsPage> createState() => _SignalsPageState();
 }
 
-class _SignalsPageState extends State<SignalsPage> {
+class _SignalsPageState extends ConsumerState<SignalsPage> {
   final _searchController = TextEditingController();
   String _searchQuery = '';
-
-  // TODO: 替换为真实 API 数据
-  final List<SignalItemData> _allSignals = [
-    SignalItemData(
-      id: 'sig-1',
-      symbol: '600519.SH',
-      name: 'Kweichow Moutai',
-      price: 1720.50,
-      change: 1.25,
-      timestamp: '2024-05-20',
-      status: 'triggered',
-      rules: [
-        RuleData(
-          name: 'MA5 > MA20',
-          description: 'Short term trend above medium term',
-          satisfied: true,
-          value: '1715.2',
-          threshold: '1710.8',
-        ),
-        RuleData(
-          name: 'Volume Surge',
-          description: 'Volume exceeds 20-day average by 50%',
-          satisfied: true,
-          value: '1.8x',
-          threshold: '> 1.5x',
-        ),
-        RuleData(
-          name: 'MACD Golden',
-          description: 'MACD line crosses above signal line',
-          satisfied: true,
-          value: '0.45',
-          threshold: '> 0',
-        ),
-      ],
-    ),
-    SignalItemData(
-      id: 'sig-2',
-      symbol: '000858.SZ',
-      name: 'Wuliangye',
-      price: 155.30,
-      change: -0.45,
-      timestamp: '2024-05-20',
-      status: 'pending',
-      rules: [
-        RuleData(
-          name: 'MA5 > MA20',
-          description: 'Short term trend above medium term',
-          satisfied: true,
-          value: '156.1',
-          threshold: '154.2',
-        ),
-        RuleData(
-          name: 'Volume Surge',
-          description: 'Volume exceeds 20-day average by 50%',
-          satisfied: false,
-          value: '0.9x',
-          threshold: '> 1.5x',
-        ),
-        RuleData(
-          name: 'MACD Golden',
-          description: 'MACD line crosses above signal line',
-          satisfied: true,
-          value: '0.12',
-          threshold: '> 0',
-        ),
-      ],
-    ),
-  ];
-
-  List<SignalItemData> get _filteredSignals {
-    if (_searchQuery.isEmpty) return _allSignals;
-    final q = _searchQuery.toLowerCase();
-    return _allSignals
-        .where((s) =>
-            s.symbol.toLowerCase().contains(q) ||
-            s.name.toLowerCase().contains(q))
-        .toList();
-  }
 
   @override
   void dispose() {
@@ -107,6 +32,11 @@ class _SignalsPageState extends State<SignalsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 根据搜索关键词获取信号列表
+    final signalsAsync = ref.watch(
+      signalListProvider((keyword: _searchQuery.isEmpty ? null : _searchQuery, status: null)),
+    );
+
     return SafeArea(
       bottom: false,
       child: Column(
@@ -127,15 +57,48 @@ class _SignalsPageState extends State<SignalsPage> {
           const SizedBox(height: 16),
           // 信号列表
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
-              itemCount: _filteredSignals.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SignalCard(
-                    signal: _filteredSignals[index],
-                    onTap: () => _openDetail(_filteredSignals[index]),
+            child: signalsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('加载失败', style: AppTextStyles.bodySecondary),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => ref.invalidate(
+                        signalListProvider((keyword: _searchQuery.isEmpty ? null : _searchQuery, status: null)),
+                      ),
+                      child: const Text('重试'),
+                    ),
+                  ],
+                ),
+              ),
+              data: (signalList) {
+                if (signalList.items.isEmpty) {
+                  return Center(
+                    child: Text('暂无信号数据', style: AppTextStyles.bodySecondary),
+                  );
+                }
+                return RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(
+                      signalListProvider((keyword: _searchQuery.isEmpty ? null : _searchQuery, status: null)),
+                    );
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 120),
+                    itemCount: signalList.items.length,
+                    itemBuilder: (context, index) {
+                      final signal = signalList.items[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _SignalCard(
+                          signal: signal,
+                          onTap: () => _openDetail(signal),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
@@ -193,7 +156,7 @@ class _SignalsPageState extends State<SignalsPage> {
   }
 
   /// 打开信号详情页面
-  void _openDetail(SignalItemData signal) {
+  void _openDetail(SignalListItemEntity signal) {
     Navigator.of(context).push(
       MaterialPageRoute(
         builder: (_) => SignalDetailPage(signal: signal),
@@ -209,7 +172,7 @@ class _SignalCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final SignalItemData signal;
+  final SignalListItemEntity signal;
   final VoidCallback onTap;
 
   @override
@@ -298,44 +261,4 @@ class _SignalCard extends StatelessWidget {
       ),
     );
   }
-}
-
-/// 信号数据模型（同时给 SignalDetailPage 用）
-class SignalItemData {
-  final String id;
-  final String symbol;
-  final String name;
-  final double price;
-  final double change;
-  final String timestamp;
-  final String status;
-  final List<RuleData> rules;
-
-  SignalItemData({
-    required this.id,
-    required this.symbol,
-    required this.name,
-    required this.price,
-    required this.change,
-    required this.timestamp,
-    required this.status,
-    required this.rules,
-  });
-}
-
-/// 规则数据模型
-class RuleData {
-  final String name;
-  final String description;
-  final bool satisfied;
-  final String value;
-  final String threshold;
-
-  RuleData({
-    required this.name,
-    required this.description,
-    required this.satisfied,
-    required this.value,
-    required this.threshold,
-  });
 }

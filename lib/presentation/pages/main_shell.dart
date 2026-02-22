@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../shared/design_system/app_colors.dart';
 import '../../shared/design_system/app_text_styles.dart';
+import '../state/providers.dart';
 import 'market_page.dart';
 import 'signals_page.dart';
 import 'strategies_page.dart';
@@ -10,14 +12,14 @@ import 'backtest_page.dart';
 /// 主框架页面 - 包含底部导航栏和四个 Tab 页面
 /// 对应设计稿的 App 主容器，底部 4 个导航按钮：
 /// Market / Signals / Strategies / Backtest
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends ConsumerState<MainShell> {
   /// 当前选中的 Tab 索引
   int _currentIndex = 0;
 
@@ -28,6 +30,29 @@ class _MainShellState extends State<MainShell> {
     StrategiesPage(),
     BacktestPage(),
   ];
+
+  /// 切换 Tab 时刷新对应页面的数据
+  void _onTabChanged(int index) {
+    if (index == _currentIndex) return;
+    setState(() => _currentIndex = index);
+
+    switch (index) {
+      case 0:
+        // Market 页：刷新市场概览 + 指数行情 + 最近信号
+        ref.invalidate(marketOverviewProvider);
+        ref.invalidate(marketIndexProvider);
+        ref.invalidate(signalListProvider);
+        break;
+      case 1:
+        // Signals 页：刷新信号列表
+        ref.invalidate(signalListProvider);
+        break;
+      case 2:
+        // Strategies 页：刷新策略列表
+        ref.invalidate(strategyListProvider);
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,25 +89,25 @@ class _MainShellState extends State<MainShell> {
                 icon: Icons.dashboard_rounded,
                 label: 'Market',
                 active: _currentIndex == 0,
-                onTap: () => setState(() => _currentIndex = 0),
+                onTap: () => _onTabChanged(0),
               ),
               _NavItem(
                 icon: Icons.show_chart_rounded,
                 label: 'Signals',
                 active: _currentIndex == 1,
-                onTap: () => setState(() => _currentIndex = 1),
+                onTap: () => _onTabChanged(1),
               ),
               _NavItem(
                 icon: Icons.bar_chart_rounded,
                 label: 'Strategies',
                 active: _currentIndex == 2,
-                onTap: () => setState(() => _currentIndex = 2),
+                onTap: () => _onTabChanged(2),
               ),
               _NavItem(
                 icon: Icons.history_rounded,
                 label: 'Backtest',
                 active: _currentIndex == 3,
-                onTap: () => setState(() => _currentIndex = 3),
+                onTap: () => _onTabChanged(3),
               ),
             ],
           ),

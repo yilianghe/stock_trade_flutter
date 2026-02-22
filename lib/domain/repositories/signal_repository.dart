@@ -1,5 +1,6 @@
 import '../entities/signal_batch_item_entity.dart';
 import '../entities/signal_history_item_entity.dart';
+import '../entities/signal_list_entity.dart';
 import '../entities/signal_result_entity.dart';
 
 abstract class SignalRepository {
@@ -16,5 +17,13 @@ abstract class SignalRepository {
   Future<List<SignalHistoryItemEntity>> getHistory({
     required String symbol,
     int limit,
+  });
+
+  /// 获取信号列表（新接口 GET /signals）
+  Future<SignalListEntity> getSignals({
+    String? keyword,
+    String? status,
+    int limit,
+    int offset,
   });
 }

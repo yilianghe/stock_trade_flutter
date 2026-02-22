@@ -4,13 +4,17 @@ import '../../../core/network/api_paths.dart';
 import '../../../core/network/dio_client.dart';
 import '../../models/api_response.dart';
 import '../../models/health_status.dart';
+import '../../models/market_index.dart';
+import '../../models/market_overview.dart';
 import '../../models/signal_batch_item.dart';
 import '../../models/signal_history_item.dart';
+import '../../models/signal_list_response.dart';
 import '../../models/signal_request.dart';
 import '../../models/signal_result.dart';
 import '../../models/stock_info.dart';
 import '../../models/stock_search_item.dart';
 import '../../models/stock_sync_result.dart';
+import '../../models/strategy_list_response.dart';
 import '../../models/watchlist_delete_result.dart';
 import '../../models/watchlist_item.dart';
 import '../../models/watchlist_list.dart';
@@ -132,6 +136,62 @@ class ApiClient {
       (data) => (data as List<dynamic>)
           .map((e) => SignalHistoryItem.fromJson(e as Map<String, dynamic>))
           .toList(),
+    );
+  }
+
+  // ── 市场概览 ──
+
+  Future<MarketOverview> getMarketOverview() async {
+    final response = await _dio.get(ApiPaths.marketOverview);
+    return _parseResponse(
+      response,
+      (data) => MarketOverview.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  Future<MarketIndex> getMarketIndex({
+    String indexCode = '000001.SH',
+    String period = '1w',
+  }) async {
+    final response = await _dio.get(
+      ApiPaths.marketIndex,
+      queryParameters: {'index_code': indexCode, 'period': period},
+    );
+    return _parseResponse(
+      response,
+      (data) => MarketIndex.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  // ── 信号列表 ──
+
+  Future<SignalListResponse> getSignals({
+    String? keyword,
+    String? status,
+    int limit = 20,
+    int offset = 0,
+  }) async {
+    final params = <String, dynamic>{'limit': limit, 'offset': offset};
+    if (keyword != null && keyword.isNotEmpty) params['keyword'] = keyword;
+    if (status != null && status.isNotEmpty) params['status'] = status;
+
+    final response = await _dio.get(
+      ApiPaths.signals,
+      queryParameters: params,
+    );
+    return _parseResponse(
+      response,
+      (data) => SignalListResponse.fromJson(data as Map<String, dynamic>),
+    );
+  }
+
+  // ── 策略列表 ──
+
+  Future<StrategyListResponse> getStrategies() async {
+    final response = await _dio.get(ApiPaths.strategies);
+    return _parseResponse(
+      response,
+      (data) => StrategyListResponse.fromJson(data as Map<String, dynamic>),
     );
   }
 
